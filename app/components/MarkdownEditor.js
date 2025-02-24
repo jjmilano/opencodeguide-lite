@@ -1,44 +1,51 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import SimpleMDE from 'simplemde';
+import dynamic from 'next/dynamic';
 import { saveAs } from 'file-saver';
-import 'simplemde/dist/simplemde.min.css';
 
-export default function MarkdownEditor() {
+// Import EasyMDE styles
+import 'easymde/dist/easymde.min.css';
+
+const MarkdownEditor = () => {
   const editorRef = useRef();
-  const simplemdeRef = useRef(null);
+  const easyMDERef = useRef(null);
 
   useEffect(() => {
-    if (!simplemdeRef.current) {
-      simplemdeRef.current = new SimpleMDE({
-        element: editorRef.current,
-        spellChecker: false,
-        autofocus: true,
-        placeholder: 'Write your markdown here...',
-        toolbar: [
-          'bold', 'italic', 'heading', '|',
-          'quote', 'unordered-list', 'ordered-list', '|',
-          'link', 'image', '|',
-          'preview', 'side-by-side', 'fullscreen', '|',
-          {
-            name: 'save',
-            action: () => {
-              const content = simplemdeRef.current.value();
-              const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
-              saveAs(blob, 'document.md');
+    const initializeEditor = async () => {
+      if (!easyMDERef.current) {
+        const EasyMDE = (await import('easymde')).default;
+        easyMDERef.current = new EasyMDE({
+          element: editorRef.current,
+          spellChecker: false,
+          autofocus: true,
+          placeholder: 'Write your markdown here...',
+          toolbar: [
+            'bold', 'italic', 'heading', '|',
+            'quote', 'unordered-list', 'ordered-list', '|',
+            'link', 'image', '|',
+            'preview', 'side-by-side', 'fullscreen', '|',
+            {
+              name: 'save',
+              action: () => {
+                const content = easyMDERef.current.value();
+                const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
+                saveAs(blob, 'document.md');
+              },
+              className: 'fa fa-save',
+              title: 'Save as Markdown',
             },
-            className: 'fa fa-save',
-            title: 'Save as Markdown',
-          },
-        ],
-      });
-    }
+          ],
+        });
+      }
+    };
+
+    initializeEditor();
 
     return () => {
-      if (simplemdeRef.current) {
-        simplemdeRef.current.toTextArea();
-        simplemdeRef.current = null;
+      if (easyMDERef.current) {
+        easyMDERef.current.toTextArea();
+        easyMDERef.current = null;
       }
     };
   }, []);
@@ -48,4 +55,6 @@ export default function MarkdownEditor() {
       <textarea ref={editorRef} />
     </div>
   );
-}
+};
+
+export default MarkdownEditor;
